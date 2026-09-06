@@ -38,7 +38,7 @@ permissions:
 env:
   # The one variable that separates the arms: on baseline, action-checkout
   # skips its Set up Chalk step entirely.
-  CHALK_ON: ${{ github.event_name == 'workflow_dispatch' && inputs.leg != 'baseline' }}
+  CHALK_ON: ${{ inputs.leg == 'instrumented' }}
 
 run-name: "Build & Test ${{ inputs.leg || 'push' }} ${{ inputs.racecar_run }}"
 
@@ -273,9 +273,9 @@ jobs:
 
           AWESOME_VERSION="${AWESOME_VERSION}-g$(git rev-parse --short HEAD)"
 
-          if [ "${{ github.event_name }}" == "pull_request" &&  -n "${{ matrix.test_prev_commits }}" ]; then
+          if [ "${{ 'push' }}" == "pull_request" &&  -n "${{ matrix.test_prev_commits }}" ]; then
             AWESOME_VERSION="${AWESOME_VERSION}-PR${{ github.event.number }}"
-          elif [ "${{ github.event_name }}" == "pull_request" ]; then
+          elif [ "${{ 'push' }}" == "pull_request" ]; then
             AWESOME_VERSION="v9999-PR${{ github.event.number }}"
           fi
 
@@ -382,7 +382,7 @@ jobs:
 
       # Check each commit separately (to make git-bisect less annoying).
       - name: Test previous commits
-        if: matrix.test_prev_commits && github.event_name == 'pull_request'
+        if: matrix.test_prev_commits && 'push' == 'pull_request'
         run: |
           git remote add fork "${{ github.event.pull_request.head.repo.clone_url }}"
           # `actions/checkout` creates a shallow repo (`--depth 1`) by default,
